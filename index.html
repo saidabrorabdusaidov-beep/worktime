@@ -64,6 +64,8 @@ textarea{min-height:110px;resize:vertical}
 .auth.off{display:none}
 .auth .logo{text-align:center;font-size:26px;margin-bottom:18px}
 .auth input{margin:0 0 12px}.auth .btn{width:100%}
+.menu button.theme,.theme{border:1px solid var(--line);background:none;color:var(--text);border-radius:10px;padding:0;width:40px;height:40px;font-size:18px;cursor:pointer;flex:none}
+.auth .theme{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 22px;border-radius:12px;font-weight:600;display:none;z-index:30}
 @media (max-width:460px){.logo{font-size:15px}.menu button{padding:9px 10px;font-size:14px}}
 </style>
@@ -71,6 +73,7 @@ textarea{min-height:110px;resize:vertical}
 <body>
 
 <div class="auth" id="auth">
+  <button class="theme" id="thAuth" aria-label="Toggle theme"></button>
   <div class="box">
     <div class="logo">Work<span>Time</span></div>
     <h3>Sign in</h3>
@@ -88,6 +91,7 @@ textarea{min-height:110px;resize:vertical}
     <div class="menu">
       <button id="mHome" class="on">Home</button>
       <button id="mHist">History</button>
+      <button class="theme" id="thApp" aria-label="Toggle theme"></button>
       <button id="mOut">Log out</button>
     </div>
   </nav>
@@ -348,6 +352,18 @@ $("bkFile").addEventListener("change",function(e){
   var f=e.target.files[0];if(!f)return;var r=new FileReader();
   r.onload=function(){$("bkText").value=r.result;restoreFrom(r.result)};r.readAsText(f);e.target.value="";
 });
+
+/* ---------- theme ---------- */
+var K_THEME="worktime_theme";
+function effTheme(){var t=document.documentElement.getAttribute("data-theme");if(t)return t;return window.matchMedia&&matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}
+function applyTheme(t,save){
+  document.documentElement.setAttribute("data-theme",t);if(save)lset(K_THEME,t);
+  var ic=t==="dark"?"☀️":"🌙",tt=t==="dark"?"Switch to day mode":"Switch to night mode";
+  ["thApp","thAuth"].forEach(function(id){$(id).textContent=ic;$(id).title=tt});
+}
+function flipTheme(){applyTheme(effTheme()==="dark"?"light":"dark",true)}
+$("thApp").addEventListener("click",flipTheme);$("thAuth").addEventListener("click",flipTheme);
+applyTheme(lget(K_THEME)||effTheme(),false);
 
 /* ---------- boot ---------- */
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
