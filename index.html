@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WorkTime Tracker</title>
+<style>
+:root{--bg:#0b0d17;--bg2:#141830;--card:#171b30;--text:#f1f3fb;--muted:#8b92b3;--accent:#6366f1;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--line:#262b48;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f3f4fa;--bg2:#e4e7f6;--card:#fff;--text:#16182a;--muted:#6a7090;--line:#dcdff0}}
+:root[data-theme="light"]{--bg:#f3f4fa;--bg2:#e4e7f6;--card:#fff;--text:#16182a;--muted:#6a7090;--line:#dcdff0}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(circle at 50% 0,var(--bg2),var(--bg) 70%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{height:100%;display:none;flex-direction:column}
+.app.on{display:flex}
+nav{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 16px;height:64px;border-bottom:1px solid var(--line);flex:none}
+.logo{font-weight:800;font-size:18px;letter-spacing:.5px;white-space:nowrap}
+.logo span{color:var(--accent)}
+.menu{display:flex;gap:4px}
+.menu button{background:none;border:0;color:var(--muted);font-size:15px;font-weight:600;padding:10px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.menu button.on{background:var(--accent);color:#fff}
+main{flex:1;overflow:auto}
+.page{display:none;min-height:100%}
+.page.on{display:flex}
+#home{flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+.lbl{color:var(--muted);font-size:14px;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.big{font-size:clamp(52px,17vw,200px);font-weight:800;line-height:1;letter-spacing:2px;font-variant-numeric:tabular-nums}
+.big.live{color:var(--green)}.big.paused{color:var(--amber)}
+.clock{font-size:clamp(22px,4vw,36px);font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted);margin-top:26px}
+.today{font-size:clamp(13px,2vw,18px);color:var(--muted);opacity:.85;margin:6px 0 32px}
+.btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn{border:0;border-radius:14px;padding:16px 34px;font-size:17px;font-weight:700;color:#fff;cursor:pointer}
+.btn:hover{filter:brightness(1.1)}
+.b-start{background:var(--green)}.b-pause{background:var(--amber)}.b-finish,.b-red{background:var(--red)}.b-main{background:var(--accent)}.b-ghost{background:var(--line);color:var(--text)}
+#history{flex-direction:column;max-width:720px;width:100%;margin:0 auto;padding:28px 18px}
+.hd{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
+h2{margin:0;font-size:26px}
+.sm-btn{border:1px solid var(--line);background:none;color:var(--muted);border-radius:10px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer}
+.sm-btn.danger{color:var(--red);border-color:var(--red)}
+.row{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;cursor:pointer;font-size:18px;font-weight:600}
+.row:hover{border-color:var(--accent)}
+.row span{color:var(--muted)}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+.back{background:none;border:0;color:var(--accent);font-size:15px;font-weight:600;cursor:pointer;padding:0;margin-bottom:14px;text-align:left}
+.total{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.total .n{font-size:36px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--green)}
+.total .sm{color:var(--muted);font-size:14px}
+.task{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-bottom:10px}
+.task .top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px;font-weight:700}
+.task .top span{font-variant-numeric:tabular-nums;color:var(--green)}
+.task p{margin:0 0 10px;white-space:pre-wrap;word-break:break-word}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:16px;z-index:5}
+.modal.on{display:flex}
+.box{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;width:100%;max-width:400px}
+.box h3{margin:0 0 6px;font-size:20px}
+.box .s{margin:0 0 14px;color:var(--muted);font-size:14px}
+.fields{display:flex;gap:8px}
+.fields label{flex:1;font-size:12px;color:var(--muted)}
+input,textarea{width:100%;margin-top:4px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font-size:16px;font-family:inherit}
+textarea{min-height:110px;resize:vertical}
+.err{color:var(--red);font-size:13px;min-height:18px;margin:8px 0}
+.box .btns{margin-top:10px}.box .btn{flex:1;padding:13px}
+.auth{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:radial-gradient(circle at 50% 0,var(--bg2),var(--bg) 70%)}
+.auth.off{display:none}
+.auth .logo{text-align:center;font-size:26px;margin-bottom:18px}
+.auth input{margin:0 0 12px}.auth .btn{width:100%}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 22px;border-radius:12px;font-weight:600;display:none;z-index:30}
+@media (max-width:460px){.logo{font-size:15px}.menu button{padding:9px 10px;font-size:14px}}
+</style>
+</head>
+<body>
+
+<div class="auth" id="auth">
+  <div class="box">
+    <div class="logo">Work<span>Time</span></div>
+    <h3>Sign in</h3>
+    <p class="s">Enter your login and password.</p>
+    <input id="aLogin" placeholder="Login" autocomplete="username">
+    <input id="aPw" type="password" placeholder="Password" autocomplete="current-password">
+    <div class="err" id="aErr"></div>
+    <button class="btn b-main" id="aBtn">Sign in</button>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <nav>
+    <div class="logo">Work<span>Time</span></div>
+    <div class="menu">
+      <button id="mHome" class="on">Home</button>
+      <button id="mHist">History</button>
+      <button id="mOut">Log out</button>
+    </div>
+  </nav>
+  <main>
+    <section class="page on" id="home">
+      <div class="lbl" id="lbl">Time worked</div>
+      <div class="big" id="big">00:00:00</div>
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="today" id="today"></div>
+      <div class="btns" id="ctl"></div>
+    </section>
+    <section class="page" id="history"></section>
+  </main>
+</div>
+
+<div class="modal" id="dateModal">
+  <div class="box">
+    <h3>Enter today's date</h3>
+    <p class="s">The timer starts after you confirm.</p>
+    <div class="fields">
+      <label>Day<input id="d" type="number" inputmode="numeric"></label>
+      <label>Month<input id="m" type="number" inputmode="numeric"></label>
+      <label>Year<input id="y" type="number" inputmode="numeric"></label>
+    </div>
+    <div class="err" id="dErr"></div>
+    <div class="btns"><button class="btn b-ghost" id="dCancel">Cancel</button><button class="btn b-start" id="dOk">Start</button></div>
+  </div>
+</div>
+
+<div class="modal" id="taskModal">
+  <div class="box">
+    <h3>Finish session</h3>
+    <p class="s" id="taskInfo">What did you work on?</p>
+    <textarea id="taskIn" placeholder="e.g. Built the login page, fixed bugs..."></textarea>
+    <div class="btns"><button class="btn b-ghost" id="tCancel">Back</button><button class="btn b-main" id="tOk">Save</button></div>
+  </div>
+</div>
+
+<div class="modal" id="clrModal">
+  <div class="box">
+    <h3>Clear history?</h3>
+    <p class="s">All saved sessions will be deleted. This cannot be undone.</p>
+    <div class="btns"><button class="btn b-ghost" id="cNo">Cancel</button><button class="btn b-red" id="cYes">Clear</button></div>
+  </div>
+</div>
+
+<div class="modal" id="bkModal">
+  <div class="box" style="max-width:460px">
+    <h3>Backup &amp; restore</h3>
+    <p class="s">Your history is saved in this browser automatically. Use a backup to move it to another device or keep a safe copy.</p>
+    <textarea id="bkText" placeholder="Paste a backup here to restore it" style="min-height:120px;font-size:12px;font-family:monospace"></textarea>
+    <div class="err" id="bkMsg" style="color:var(--green)"></div>
+    <div class="btns" style="margin-top:0">
+      <button class="btn b-ghost" id="bkCopy" style="min-width:120px">Copy</button>
+      <button class="btn b-ghost" id="bkDl" style="min-width:120px">Download</button>
+      <button class="btn b-main" id="bkRestore" style="min-width:120px">Restore</button>
+    </div>
+    <div class="btns" style="margin-top:10px"><label class="btn b-ghost" style="flex:1;text-align:center;cursor:pointer;padding:13px">Restore from file<input type="file" id="bkFile" accept=".json,application/json" style="display:none"></label><button class="btn b-ghost" id="bkClose" style="flex:1;padding:13px">Close</button></div>
+  </div>
+</div>
+<div class="toast" id="toast">Session saved to History</div>
+
+<script>
+var USER="saidabror abdusaidov",PASS="2012";
+var K_HIST="worktime_v4",K_ACT="worktime_active",K_AUTH="worktime_auth";
+var sessions=[],S={active:false,running:false,elapsed:0,startTs:0,date:""},frozen=0,wasRunning=false;
+var $=function(id){return document.getElementById(id)};
+function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function pad(n){return String(n).padStart(2,"0")}
+function fmt(ms){var s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60)}
+function human(ms){var s=Math.round(ms/1000);return Math.floor(s/3600)+" h "+Math.floor(s%3600/60)+" min"}
+function lget(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lset(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function ldel(k){try{localStorage.removeItem(k)}catch(e){}}
+function cur(){return S.elapsed+(S.running?Date.now()-S.startTs:0)}
+function toKey(d){var p=d.split(".");return +(p[2]+p[1]+p[0])}
+
+/* ---------- storage ---------- */
+function loadAll(){
+  try{sessions=JSON.parse(lget(K_HIST)||lget("worktime_v2")||"[]")}catch(e){sessions=[]}
+  if(!Array.isArray(sessions))sessions=[];
+  sessions.forEach(function(s,i){if(!s.id)s.id=Date.now()+"-"+i});
+  try{var a=JSON.parse(lget(K_ACT)||"null");if(a&&a.active)S=a}catch(e){}
+}
+function saveHist(){lset(K_HIST,JSON.stringify(sessions))}
+function saveAct(){if(S.active)lset(K_ACT,JSON.stringify(S));else ldel(K_ACT)}
+
+/* ---------- navigation ---------- */
+function show(n){
+  $("home").classList.toggle("on",n==="home");
+  $("history").classList.toggle("on",n==="history");
+  $("mHome").classList.toggle("on",n==="home");
+  $("mHist").classList.toggle("on",n==="history");
+  if(n==="history")renderDates();
+}
+$("mHome").addEventListener("click",function(){show("home")});
+$("mHist").addEventListener("click",function(){show("history")});
+
+/* ---------- login ---------- */
+function tryLogin(){
+  var l=$("aLogin").value.trim().toLowerCase().replace(/\s+/g," "),p=$("aPw").value;
+  if(l===USER&&p===PASS){lset(K_AUTH,"1");enter()}
+  else{$("aErr").textContent="Wrong login or password";$("aPw").value=""}
+}
+function enter(){
+  $("auth").classList.add("off");$("app").classList.add("on");
+  loadAll();renderCtl();show("home");tick();
+}
+$("aBtn").addEventListener("click",tryLogin);
+$("aLogin").addEventListener("keydown",function(e){if(e.key==="Enter")$("aPw").focus()});
+$("aPw").addEventListener("keydown",function(e){if(e.key==="Enter")tryLogin()});
+$("mOut").addEventListener("click",function(){
+  ldel(K_AUTH);$("app").classList.remove("on");$("auth").classList.remove("off");
+  $("aLogin").value="";$("aPw").value="";$("aErr").textContent="";
+});
+
+/* ---------- clock + timer ---------- */
+function tick(){
+  var n=new Date();
+  $("clock").textContent=pad(n.getHours())+":"+pad(n.getMinutes())+":"+pad(n.getSeconds());
+  $("today").textContent=n.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  var b=$("big");
+  b.textContent=S.active?fmt(cur()):"00:00:00";
+  b.classList.toggle("live",S.active&&S.running);
+  b.classList.toggle("paused",S.active&&!S.running);
+  document.title=S.active?fmt(cur())+" · WorkTime":"WorkTime Tracker";
+}
+setInterval(tick,250);
+
+function btn(text,cls,fn){var b=el("button","btn "+cls,text);b.addEventListener("click",fn);return b}
+function renderCtl(){
+  var c=$("ctl");c.innerHTML="";
+  if(!S.active){$("lbl").textContent="Time worked";c.appendChild(btn("Start","b-start",openDate));return}
+  $("lbl").textContent=(S.running?"Working · ":"Paused · ")+S.date;
+  c.appendChild(btn(S.running?"Pause":"Resume","b-pause",togglePause));
+  c.appendChild(btn("Finish","b-finish",openFinish));
+}
+
+/* ---------- start ---------- */
+function openDate(){
+  var t=new Date();
+  $("d").value=t.getDate();$("m").value=t.getMonth()+1;$("y").value=t.getFullYear();
+  $("dErr").textContent="";$("dateModal").classList.add("on");
+}
+function confirmDate(){
+  var d=parseInt($("d").value,10),m=parseInt($("m").value,10),y=parseInt($("y").value,10);
+  var dt=new Date(y,m-1,d);
+  if(!d||!m||!y||y<2000||y>2100||dt.getDate()!==d||dt.getMonth()!==m-1){$("dErr").textContent="Invalid date";return}
+  S={active:true,running:true,elapsed:0,startTs:Date.now(),date:pad(d)+"."+pad(m)+"."+y};
+  saveAct();$("dateModal").classList.remove("on");renderCtl();tick();
+}
+$("dOk").addEventListener("click",confirmDate);
+$("dCancel").addEventListener("click",function(){$("dateModal").classList.remove("on")});
+["d","m","y"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter")confirmDate()})});
+
+/* ---------- pause / finish ---------- */
+function togglePause(){
+  if(S.running){S.elapsed+=Date.now()-S.startTs;S.running=false}
+  else{S.startTs=Date.now();S.running=true}
+  saveAct();renderCtl();tick();
+}
+function openFinish(){
+  wasRunning=S.running;
+  if(S.running){S.elapsed+=Date.now()-S.startTs;S.running=false}
+  frozen=S.elapsed;saveAct();renderCtl();tick();
+  $("taskInfo").textContent="Time worked: "+fmt(frozen)+". What did you work on?";
+  $("taskIn").value="";$("taskModal").classList.add("on");
+}
+$("tCancel").addEventListener("click",function(){
+  $("taskModal").classList.remove("on");
+  if(wasRunning){S.startTs=Date.now();S.running=true;saveAct();renderCtl();tick()}
+});
+$("tOk").addEventListener("click",function(){
+  var n=new Date();
+  sessions.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,6),date:S.date,ms:frozen,task:$("taskIn").value.trim()||"(no description)",end:pad(n.getHours())+":"+pad(n.getMinutes())});
+  saveHist();
+  S={active:false,running:false,elapsed:0,startTs:0,date:""};frozen=0;saveAct();
+  $("taskModal").classList.remove("on");renderCtl();tick();
+  var t=$("toast");t.style.display="block";setTimeout(function(){t.style.display="none"},2200);
+});
+
+/* ---------- history ---------- */
+function renderDates(){
+  var h=$("history");h.innerHTML="";
+  var hd=el("div","hd");hd.appendChild(el("h2",null,"History"));
+  var grp=el("div");grp.style.cssText="display:flex;gap:8px;flex-wrap:wrap";
+  var bb=el("button","sm-btn","Backup");bb.addEventListener("click",openBackup);grp.appendChild(bb);
+  if(sessions.length){var cb=el("button","sm-btn danger","Clear");cb.addEventListener("click",function(){$("clrModal").classList.add("on")});grp.appendChild(cb)}
+  hd.appendChild(grp);
+  h.appendChild(hd);
+  var seen={},dates=[];
+  sessions.forEach(function(s){if(!seen[s.date]){seen[s.date]=1;dates.push(s.date)}});
+  dates.sort(function(a,b){return toKey(b)-toKey(a)});
+  if(!dates.length){h.appendChild(el("div","empty","No sessions yet. Start working and finish a session to see it here."));return}
+  dates.forEach(function(d){
+    var r=el("div","row");r.appendChild(el("div",null,d));r.appendChild(el("span",null,"›"));
+    r.addEventListener("click",function(){renderDay(d)});h.appendChild(r);
+  });
+}
+function renderDay(d){
+  var list=sessions.filter(function(s){return s.date===d});
+  if(!list.length){renderDates();return}
+  var h=$("history");h.innerHTML="";
+  var back=el("button","back","‹ Back to dates");back.addEventListener("click",renderDates);h.appendChild(back);
+  var total=list.reduce(function(a,s){return a+s.ms},0);
+  var box=el("div","total");
+  box.appendChild(el("div","sm",d+" · total time worked"));
+  box.appendChild(el("div","n",fmt(total)));
+  box.appendChild(el("div","sm",human(total)+" in "+list.length+" session"+(list.length>1?"s":"")));
+  h.appendChild(box);
+  list.forEach(function(s){
+    var t=el("div","task"),top=el("div","top");
+    top.appendChild(el("div",null,"Finished at "+s.end));top.appendChild(el("span",null,fmt(s.ms)));
+    t.appendChild(top);t.appendChild(el("p",null,s.task));
+    var del=el("button","sm-btn danger","Delete");
+    del.addEventListener("click",function(){
+      if(del.dataset.s!=="1"){del.dataset.s="1";del.textContent="Sure? Click again";return}
+      sessions=sessions.filter(function(x){return x.id!==s.id});saveHist();renderDay(d);
+    });
+    t.appendChild(del);h.appendChild(t);
+  });
+}
+$("cNo").addEventListener("click",function(){$("clrModal").classList.remove("on")});
+$("cYes").addEventListener("click",function(){sessions=[];saveHist();$("clrModal").classList.remove("on");renderDates()});
+
+/* ---------- backup ---------- */
+function bkMsg(t,bad){var m=$("bkMsg");m.textContent=t;m.style.color=bad?"var(--red)":"var(--green)"}
+function openBackup(){$("bkText").value=sessions.length?JSON.stringify(sessions):"";bkMsg("");$("bkModal").classList.add("on")}
+$("bkClose").addEventListener("click",function(){$("bkModal").classList.remove("on")});
+$("bkCopy").addEventListener("click",function(){
+  var t=$("bkText");if(!t.value){bkMsg("Nothing to copy yet",true);return}
+  t.select();var ok=false;
+  try{if(navigator.clipboard){navigator.clipboard.writeText(t.value);ok=true}}catch(e){}
+  if(!ok){try{ok=document.execCommand("copy")}catch(e){}}
+  bkMsg(ok?"Copied":"Select the text and copy it manually",!ok);
+});
+$("bkDl").addEventListener("click",function(){
+  if(!sessions.length){bkMsg("Nothing to download yet",true);return}
+  try{
+    var b=new Blob([JSON.stringify(sessions)],{type:"application/json"}),a=document.createElement("a");
+    a.href=URL.createObjectURL(b);a.download="worktime-backup.json";document.body.appendChild(a);a.click();a.remove();
+    bkMsg("Backup file downloaded");
+  }catch(e){bkMsg("Download is not available here, use Copy instead",true)}
+});
+function restoreFrom(text){
+  var data;try{data=JSON.parse(text)}catch(e){bkMsg("This is not a valid backup",true);return}
+  if(!Array.isArray(data)){bkMsg("This is not a valid backup",true);return}
+  var have={};sessions.forEach(function(x){have[x.id]=1});var added=0;
+  data.forEach(function(x,i){
+    if(!x||!/^\d{2}\.\d{2}\.\d{4}$/.test(x.date||"")||typeof x.ms!=="number")return;
+    var id=x.id||("r"+Date.now()+"-"+i);if(have[id])return;have[id]=1;
+    sessions.push({id:id,date:x.date,ms:x.ms,task:String(x.task||"(no description)"),end:String(x.end||"")});added++;
+  });
+  saveHist();bkMsg(added?added+" session"+(added>1?"s":"")+" restored":"Nothing new to restore");renderDates();
+}
+$("bkRestore").addEventListener("click",function(){restoreFrom($("bkText").value)});
+$("bkFile").addEventListener("change",function(e){
+  var f=e.target.files[0];if(!f)return;var r=new FileReader();
+  r.onload=function(){$("bkText").value=r.result;restoreFrom(r.result)};r.readAsText(f);e.target.value="";
+});
+
+/* ---------- boot ---------- */
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+if(lget(K_AUTH)==="1")enter();else tick();
+</script>
+</body>
+</html>
